@@ -305,7 +305,8 @@ def _wrap_tracer(task, f):
                         "kwargs": args[2],
                     }
                 },
-            ):
+            ) as transaction:
+                transaction.set_data("retry_count", task.request.retries)
                 return f(*args, **kwargs)
 
     return _inner  # type: ignore
