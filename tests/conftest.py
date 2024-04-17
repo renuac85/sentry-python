@@ -9,6 +9,8 @@ from unittest import mock
 import pytest
 import jsonschema
 
+from sentry_sdk.integrations.celery import CeleryIntegration
+
 try:
     import gevent
 except ImportError:
@@ -172,7 +174,7 @@ def reset_integrations():
     _processed_integrations.clear()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def sentry_init(request):
     def inner(*a, **kw):
         hub = sentry_sdk.Hub.current
@@ -188,6 +190,15 @@ def sentry_init(request):
     else:
         with sentry_sdk.Hub(None):
             yield inner
+
+
+@pytest.fixture(scope="session")
+def celery_config(sentry_init):
+    sentry_init(integrations=[CeleryIntegration()], enable_tracing=True)
+    return {
+        "broker_backend": "memory://",
+        "broker_url": "memory://",
+    }
 
 
 class TestTransport(Transport):

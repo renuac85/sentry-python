@@ -597,3 +597,20 @@ def test_apply_async_no_args(init_celery):
         pytest.fail("Calling `apply_async` without arguments raised a TypeError")
 
     assert result.get() == "success"
+
+
+def test_queue_task_name(capture_events, celery_app, celery_worker):
+    @celery_app.task(name="dummy_task", bind=True)
+    def dummy_task(self):
+        print(self.request)
+        return 42
+
+    celery_worker.reload()
+    events = capture_events()
+    dummy_task.delay()
+
+    (event,) = events
+    breakpoint()
+    (span,) = event["spans"]
+
+    assert span["data"]["messaging.destination.name"] == "celery"
