@@ -8,9 +8,12 @@ docker run -d -p 18123:8123 -p9000:9000 --name clickhouse-test --ulimit nofile=2
 import clickhouse_driver
 from clickhouse_driver import Client, connect
 
+from unittest import mock
+
 from sentry_sdk import start_transaction, capture_message
 from sentry_sdk.integrations.clickhouse_driver import ClickhouseDriverIntegration
 from tests.conftest import ApproxDict
+
 
 EXPECT_PARAMS_IN_SELECT = True
 if clickhouse_driver.VERSION < (0, 2, 6):
@@ -247,6 +250,7 @@ def test_clickhouse_client_spans(
     expected_spans = [
         {
             "op": "db",
+            "origin": None,
             "description": "DROP TABLE IF EXISTS test",
             "data": {
                 "db.system": "clickhouse",
@@ -254,6 +258,8 @@ def test_clickhouse_client_spans(
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
             },
             "same_process_as_parent": True,
             "trace_id": transaction_trace_id,
@@ -261,6 +267,7 @@ def test_clickhouse_client_spans(
         },
         {
             "op": "db",
+            "origin": None,
             "description": "CREATE TABLE test (x Int32) ENGINE = Memory",
             "data": {
                 "db.system": "clickhouse",
@@ -268,6 +275,8 @@ def test_clickhouse_client_spans(
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
             },
             "same_process_as_parent": True,
             "trace_id": transaction_trace_id,
@@ -275,6 +284,7 @@ def test_clickhouse_client_spans(
         },
         {
             "op": "db",
+            "origin": None,
             "description": "INSERT INTO test (x) VALUES",
             "data": {
                 "db.system": "clickhouse",
@@ -282,6 +292,8 @@ def test_clickhouse_client_spans(
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
             },
             "same_process_as_parent": True,
             "trace_id": transaction_trace_id,
@@ -289,6 +301,7 @@ def test_clickhouse_client_spans(
         },
         {
             "op": "db",
+            "origin": None,
             "description": "INSERT INTO test (x) VALUES",
             "data": {
                 "db.system": "clickhouse",
@@ -296,6 +309,8 @@ def test_clickhouse_client_spans(
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
             },
             "same_process_as_parent": True,
             "trace_id": transaction_trace_id,
@@ -303,6 +318,7 @@ def test_clickhouse_client_spans(
         },
         {
             "op": "db",
+            "origin": None,
             "description": "SELECT sum(x) FROM test WHERE x > 150",
             "data": {
                 "db.system": "clickhouse",
@@ -310,6 +326,8 @@ def test_clickhouse_client_spans(
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
             },
             "same_process_as_parent": True,
             "trace_id": transaction_trace_id,
@@ -365,6 +383,7 @@ def test_clickhouse_client_spans_with_pii(
     expected_spans = [
         {
             "op": "db",
+            "origin": None,
             "description": "DROP TABLE IF EXISTS test",
             "data": {
                 "db.system": "clickhouse",
@@ -372,6 +391,8 @@ def test_clickhouse_client_spans_with_pii(
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
                 "db.result": [],
             },
             "same_process_as_parent": True,
@@ -380,6 +401,7 @@ def test_clickhouse_client_spans_with_pii(
         },
         {
             "op": "db",
+            "origin": None,
             "description": "CREATE TABLE test (x Int32) ENGINE = Memory",
             "data": {
                 "db.system": "clickhouse",
@@ -387,6 +409,8 @@ def test_clickhouse_client_spans_with_pii(
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
                 "db.result": [],
             },
             "same_process_as_parent": True,
@@ -395,6 +419,7 @@ def test_clickhouse_client_spans_with_pii(
         },
         {
             "op": "db",
+            "origin": None,
             "description": "INSERT INTO test (x) VALUES",
             "data": {
                 "db.system": "clickhouse",
@@ -402,6 +427,8 @@ def test_clickhouse_client_spans_with_pii(
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
                 "db.params": [{"x": 100}],
             },
             "same_process_as_parent": True,
@@ -410,6 +437,7 @@ def test_clickhouse_client_spans_with_pii(
         },
         {
             "op": "db",
+            "origin": None,
             "description": "INSERT INTO test (x) VALUES",
             "data": {
                 "db.system": "clickhouse",
@@ -417,6 +445,8 @@ def test_clickhouse_client_spans_with_pii(
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
                 "db.params": [[170], [200]],
             },
             "same_process_as_parent": True,
@@ -425,6 +455,7 @@ def test_clickhouse_client_spans_with_pii(
         },
         {
             "op": "db",
+            "origin": None,
             "description": "SELECT sum(x) FROM test WHERE x > 150",
             "data": {
                 "db.system": "clickhouse",
@@ -432,6 +463,8 @@ def test_clickhouse_client_spans_with_pii(
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
                 "db.params": {"minv": 150},
                 "db.result": [[370]],
             },
@@ -685,6 +718,7 @@ def test_clickhouse_dbapi_spans(sentry_init, capture_events, capture_envelopes) 
     expected_spans = [
         {
             "op": "db",
+            "origin": None,
             "description": "DROP TABLE IF EXISTS test",
             "data": {
                 "db.system": "clickhouse",
@@ -692,6 +726,8 @@ def test_clickhouse_dbapi_spans(sentry_init, capture_events, capture_envelopes) 
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
             },
             "same_process_as_parent": True,
             "trace_id": transaction_trace_id,
@@ -699,6 +735,7 @@ def test_clickhouse_dbapi_spans(sentry_init, capture_events, capture_envelopes) 
         },
         {
             "op": "db",
+            "origin": None,
             "description": "CREATE TABLE test (x Int32) ENGINE = Memory",
             "data": {
                 "db.system": "clickhouse",
@@ -706,6 +743,8 @@ def test_clickhouse_dbapi_spans(sentry_init, capture_events, capture_envelopes) 
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
             },
             "same_process_as_parent": True,
             "trace_id": transaction_trace_id,
@@ -713,6 +752,7 @@ def test_clickhouse_dbapi_spans(sentry_init, capture_events, capture_envelopes) 
         },
         {
             "op": "db",
+            "origin": None,
             "description": "INSERT INTO test (x) VALUES",
             "data": {
                 "db.system": "clickhouse",
@@ -720,6 +760,8 @@ def test_clickhouse_dbapi_spans(sentry_init, capture_events, capture_envelopes) 
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
             },
             "same_process_as_parent": True,
             "trace_id": transaction_trace_id,
@@ -727,6 +769,7 @@ def test_clickhouse_dbapi_spans(sentry_init, capture_events, capture_envelopes) 
         },
         {
             "op": "db",
+            "origin": None,
             "description": "INSERT INTO test (x) VALUES",
             "data": {
                 "db.system": "clickhouse",
@@ -734,6 +777,8 @@ def test_clickhouse_dbapi_spans(sentry_init, capture_events, capture_envelopes) 
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
             },
             "same_process_as_parent": True,
             "trace_id": transaction_trace_id,
@@ -741,6 +786,7 @@ def test_clickhouse_dbapi_spans(sentry_init, capture_events, capture_envelopes) 
         },
         {
             "op": "db",
+            "origin": None,
             "description": "SELECT sum(x) FROM test WHERE x > 150",
             "data": {
                 "db.system": "clickhouse",
@@ -748,6 +794,8 @@ def test_clickhouse_dbapi_spans(sentry_init, capture_events, capture_envelopes) 
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
             },
             "same_process_as_parent": True,
             "trace_id": transaction_trace_id,
@@ -803,6 +851,7 @@ def test_clickhouse_dbapi_spans_with_pii(
     expected_spans = [
         {
             "op": "db",
+            "origin": None,
             "description": "DROP TABLE IF EXISTS test",
             "data": {
                 "db.system": "clickhouse",
@@ -810,6 +859,8 @@ def test_clickhouse_dbapi_spans_with_pii(
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
                 "db.result": [[], []],
             },
             "same_process_as_parent": True,
@@ -818,6 +869,7 @@ def test_clickhouse_dbapi_spans_with_pii(
         },
         {
             "op": "db",
+            "origin": None,
             "description": "CREATE TABLE test (x Int32) ENGINE = Memory",
             "data": {
                 "db.system": "clickhouse",
@@ -825,6 +877,8 @@ def test_clickhouse_dbapi_spans_with_pii(
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
                 "db.result": [[], []],
             },
             "same_process_as_parent": True,
@@ -833,6 +887,7 @@ def test_clickhouse_dbapi_spans_with_pii(
         },
         {
             "op": "db",
+            "origin": None,
             "description": "INSERT INTO test (x) VALUES",
             "data": {
                 "db.system": "clickhouse",
@@ -840,6 +895,8 @@ def test_clickhouse_dbapi_spans_with_pii(
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
                 "db.params": [{"x": 100}],
             },
             "same_process_as_parent": True,
@@ -848,6 +905,7 @@ def test_clickhouse_dbapi_spans_with_pii(
         },
         {
             "op": "db",
+            "origin": None,
             "description": "INSERT INTO test (x) VALUES",
             "data": {
                 "db.system": "clickhouse",
@@ -855,6 +913,8 @@ def test_clickhouse_dbapi_spans_with_pii(
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
                 "db.params": [[170], [200]],
             },
             "same_process_as_parent": True,
@@ -863,6 +923,7 @@ def test_clickhouse_dbapi_spans_with_pii(
         },
         {
             "op": "db",
+            "origin": None,
             "description": "SELECT sum(x) FROM test WHERE x > 150",
             "data": {
                 "db.system": "clickhouse",
@@ -870,6 +931,8 @@ def test_clickhouse_dbapi_spans_with_pii(
                 "db.user": "default",
                 "server.address": "localhost",
                 "server.port": 9000,
+                "thread.id": mock.ANY,
+                "thread.name": "MainThread",
                 "db.params": {"minv": 150},
                 "db.result": [[[370]], [["sum(x)", "Int64"]]],
             },
