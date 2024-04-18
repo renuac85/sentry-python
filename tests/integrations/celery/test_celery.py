@@ -215,6 +215,7 @@ def test_transaction_events(capture_events, init_celery, celery_invocation, task
             "data": ApproxDict(),
             "description": "dummy_task",
             "op": "queue.submit.celery",
+            "origin": None,
             "parent_span_id": submission_event["contexts"]["trace"]["span_id"],
             "same_process_as_parent": True,
             "span_id": submission_event["spans"][0]["span_id"],
