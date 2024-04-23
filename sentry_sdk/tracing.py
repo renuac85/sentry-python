@@ -695,7 +695,7 @@ class Transaction(Span):
             )
         )
 
-    def _possibly_stated(self):
+    def _possibly_started(self):
         # type: () -> bool
         """Returns whether the transaction might have been started.
 
@@ -709,7 +709,7 @@ class Transaction(Span):
 
     def __enter__(self):
         # type: () -> Transaction
-        if not self._possibly_stated():
+        if not self._possibly_started():
             logger.warning(
                 """Transaction was entered without being started with sentry_sdk.start_transaction.
                    The transaction will not be sent to Sentry. To fix, start the transaction by
